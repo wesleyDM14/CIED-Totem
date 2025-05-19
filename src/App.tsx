@@ -1,8 +1,7 @@
+import Totem from "./pages/TotemSenha"
+
 function App() {
-  return (
-    <>
-    </>
-  )
+  return <Totem />
 }
 
 export default App
