@@ -1,21 +1,11 @@
-import styled, { keyframes } from "styled-components";
-
-const LoadingScreenAnimation = keyframes`
-    from {
-        opacity: 0;
-    }
-    to {
-        opacity: 1;
-    }
-`;
+import styled from "styled-components";
 
 export const LoadingContainer = styled.div`
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    height: 80vh;
-    animation: ${LoadingScreenAnimation} 1s;
+    height: 100%;
 `;
 
 export const Logo = styled.img`

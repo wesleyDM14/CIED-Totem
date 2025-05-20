@@ -2,8 +2,8 @@ import styled from "styled-components";
 import { colors } from "../../styles/global";
 
 export const Container = styled.div`
-  width: 100vw;
-  height: 100vh;
+  width: 100%;
+  height: 100%;
   padding: 2vh;
   display: flex;
   flex-direction: column;
@@ -19,7 +19,7 @@ export const Titulo = styled.h1`
 
 export const Grid = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  grid-template-columns: repeat(4 , 1fr);
   gap: 20px;
   width: 100%;
   max-width: 1000px;
@@ -29,31 +29,25 @@ export const Grid = styled.div`
 export const Card = styled.div`
   background: ${colors.btnSecondary};
   color: white;
-  padding: 1.5rem;
-  border-radius: 16px;
-  font-size: 1.2rem;
+  padding: 1rem;
+  border-radius: 12px;
+  font-size: 1rem;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  height: 180px;
-  min-width: 200px;
+  height: 160px;
+  min-width: 180px;
   cursor: pointer;
-  transition: 0.2s;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
   text-align: center;
 
-  &:hover {
-    transform: scale(1.03);
-  }
-
   strong {
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.4rem;
   }
 
   span {
-    font-size: 0.9rem;
-    color: #ddd;
+    font-size: 0.85rem;
+    color: #eee;
   }
 `;
 
@@ -89,6 +83,6 @@ export const FecharButton = styled.button`
 export const Logo = styled.img`
   width: 250px;
   height: 120px;
-  object-fit: contain;
+  object-fit: scale-down;
   margin-bottom: 20px;
 `;

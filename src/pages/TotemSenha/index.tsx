@@ -35,6 +35,8 @@ const Totem: React.FC = () => {
         setSelectedProcedimento(null);
     };
 
+    const handleAgendaAtualizada = () => setLoading(true);
+
     useEffect(() => {
         const fetchData = async () => {
             if (loading) {
@@ -51,16 +53,10 @@ const Totem: React.FC = () => {
     }, [loading]);
 
     useEffect(() => {
-        socket.on('agenda-atualizada', (data: string) => {
-            console.log('Agenda foi atualizada!', data);
-            setLoading(true); // força o re-fetch
-        });
+        socket.on("agenda-atualizada", handleAgendaAtualizada);
 
         return () => {
-            socket.off('agenda-atualizada', (data: string) => {
-                console.log('Agenda foi atualizada!', data);
-                setLoading(true); // força o re-fetch
-            });
+            socket.off("agenda-atualizada", handleAgendaAtualizada);
         };
     }, []);
 
@@ -88,12 +84,13 @@ const Totem: React.FC = () => {
                     profissional: selectedProcedimento.nomeProfissional,
                     createdAt: senhaGerada.createdAt,
                 });
+
+                closeModal();
             } catch (error) {
                 console.log(error);
                 window.alert('Erro ao gerar a Senha.');
             } finally {
                 setCreatingTicket(false);
-                closeModal();
             }
         }
     };
