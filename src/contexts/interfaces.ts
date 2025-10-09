@@ -19,9 +19,9 @@ export interface Schedule {
 export interface Ticket {
     id: string;
     code: string;
-    type: "NORMAL" | "PREFERENCIAL";
+    type: "NORMAL" | "PREFERENCIAL" | "IDOSO_80_MAIS";
     status: "WAITING" | "CALLED" | "FINISHED";
-    serviceCounter: string;
+    corredor: string;
     createdAt: Date;
     calledAt?: Date;
     scheduleAt?: Date;

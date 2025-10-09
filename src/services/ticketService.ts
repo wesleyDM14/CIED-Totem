@@ -1,7 +1,7 @@
 import axios, { AxiosError } from "axios";
 import type { Ticket } from "../contexts/interfaces";
 
-export const createTicket = async (tipo: 'NORMAL' | 'PREFERENCIAL', procedimentoId: string): Promise<Ticket> => {
+export const createTicket = async (tipo: 'NORMAL' | 'PREFERENCIAL' | 'IDOSO_80_MAIS', procedimentoId: string): Promise<Ticket> => {
     try {
         const response = await axios.post(`${import.meta.env.VITE_BASE_URL}/api/tickets/create`, {
             type: tipo,

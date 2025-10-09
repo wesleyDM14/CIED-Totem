@@ -11,6 +11,8 @@ import { io } from "socket.io-client";
 
 const socket = io(import.meta.env.VITE_BASE_URL);
 
+type TicketType = "NORMAL" | "PREFERENCIAL" | "IDOSO_80_MAIS";
+
 const Totem: React.FC = () => {
 
     const rootElement = document.getElementById('root');
@@ -70,12 +72,11 @@ const Totem: React.FC = () => {
         return [];
     }, [agendaDiaria]);
 
-    const confirmar = async (tipo: "NORMAL" | "PREFERENCIAL") => {
+    const confirmar = async (tipo: TicketType) => {
         if (selectedProcedimento) {
             try {
                 setCreatingTicket(true);
                 const senhaGerada = await createTicket(tipo, selectedProcedimento.id);
-                console.log(senhaGerada);
 
                 await imprimirLocal({
                     code: senhaGerada.code,
@@ -137,11 +138,14 @@ const Totem: React.FC = () => {
                 <h2>{selectedProcedimento?.description}</h2>
                 <p>{selectedProcedimento?.nomeProfissional}</p>
                 <ButtonRow>
-                    <ModalButton onClick={() => confirmar("NORMAL")} disabled={creatingTicket}>
-                        <FaUser /> Normal
+                    <ModalButton onClick={() => confirmar("IDOSO_80_MAIS")} disabled={creatingTicket}>
+                        <strong>80+</strong> Prioridade
                     </ModalButton>
                     <ModalButton onClick={() => confirmar("PREFERENCIAL")} disabled={creatingTicket}>
                         <FaAccessibleIcon /> Preferencial
+                    </ModalButton>
+                    <ModalButton onClick={() => confirmar("NORMAL")} disabled={creatingTicket}>
+                        <FaUser /> Normal
                     </ModalButton>
                 </ButtonRow>
                 <FecharButton onClick={closeModal}>Cancelar</FecharButton>
