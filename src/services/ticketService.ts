@@ -3,7 +3,7 @@ import type { Ticket } from "../contexts/interfaces";
 
 export const createTicket = async (tipo: 'NORMAL' | 'PREFERENCIAL' | 'IDOSO_80_MAIS', procedimentoId: string): Promise<Ticket> => {
     try {
-        const response = await axios.post(`${import.meta.env.VITE_BASE_URL}/api/tickets/create`, {
+        const response = await axios.post(`${import.meta.env.VITE_BASE_URL}/api/tickets/totem`, {
             type: tipo,
             procedimentoId
         }, {
@@ -29,14 +29,26 @@ export const imprimirLocal = async (dados: {
     createdAt: Date;
 }) => {
     try {
-        await fetch("http://localhost:3333/print", {
+        const response = await fetch("http://localhost:3333/print", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
             },
             body: JSON.stringify(dados),
         });
+
+        // fetch só rejeita a Promise em falha de rede — uma resposta HTTP de
+        // erro (impressora offline, serviço local fora do ar respondendo
+        // 5xx) chega aqui como "sucesso". Sem checar `response.ok`, uma
+        // falha de impressão passava despercebida.
+        if (!response.ok) {
+            throw new Error(`Serviço de impressão local respondeu com status ${response.status}`);
+        }
     } catch (error) {
+        // Antes o erro só ia pro console e o paciente nunca via o código da
+        // senha gerada quando a impressora falhava. Relançar aqui permite
+        // que a tela mostre o código como fallback visual.
         console.error("Erro ao enviar para impressão local:", error);
+        throw error;
     }
 };

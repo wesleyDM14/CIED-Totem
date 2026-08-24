@@ -1,54 +1,68 @@
-# React + TypeScript + Vite
+# Totem de Senhas — CIED
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Aplicação React + TypeScript + Vite que roda em tela cheia numa Raspberry Pi
+na recepção da clínica, permitindo que o paciente selecione o procedimento
+agendado e gere sua senha de atendimento (Normal, Preferencial ou 80+).
 
-Currently, two official plugins are available:
+## Operação sem supervisão (importante)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+Este app roda **24 horas por dia, todos os dias, sem ninguém para
+reiniciar o equipamento fisicamente**. Qualquer alteração no código precisa
+levar isso em conta:
 
-## Expanding the ESLint configuration
+- Erros não tratados são capturados por um `ErrorBoundary`
+  (`src/components/ErrorBoundary`) que mostra uma tela de recuperação e
+  recarrega a página automaticamente.
+- A página se recarrega sozinha uma vez por dia, de madrugada (janela das
+  3h às 4h, horário local do equipamento), para limpar qualquer estado
+  acumulado — ver `src/utils/watchdog.ts`.
+- Se a busca da agenda ficar falhando por 5 minutos seguidos, a página força
+  um reload completo em vez de continuar tentando indefinidamente em
+  memória.
+- Falhas de carregamento de chunk (comuns quando a aba fica aberta por dias
+  e um novo deploy invalida os arquivos JS antigos em cache) também disparam
+  um reload automático.
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+Se você alterar esses mecanismos, teste o comportamento de erro
+propositalmente (derrube o backend, desconecte a rede) antes de publicar em
+produção — não há ninguém na clínica para diagnosticar uma tela travada.
 
-```js
-export default tseslint.config({
-  extends: [
-    // Remove ...tseslint.configs.recommended and replace with this
-    ...tseslint.configs.recommendedTypeChecked,
-    // Alternatively, use this for stricter rules
-    ...tseslint.configs.strictTypeChecked,
-    // Optionally, add this for stylistic rules
-    ...tseslint.configs.stylisticTypeChecked,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+## Variáveis de ambiente
+
+Configure um arquivo `.env` na raiz do projeto com:
+
+| Variável | Descrição |
+| --- | --- |
+| `VITE_BASE_URL` | URL base da API do backend (ex.: `https://api.ciedcomplexohospitalar.com.br`). Usada tanto para chamadas HTTP quanto para a conexão do socket.io. |
+| `VITE_APP_SECRET_KEY` | Chave enviada no header `x-api-key` nas requisições ao backend. **Atenção:** por ser uma variável `VITE_*`, ela é injetada em texto puro no bundle enviado ao navegador — qualquer pessoa com acesso ao totem consegue lê-la. A proteção contra abuso dessa chave é feita no backend via rate limiting nas rotas do totem, não pela ocultação do valor. |
+
+Nunca versione o `.env` real com credenciais de produção fora deste
+repositório privado.
+
+## Dependência do serviço de impressão local
+
+A emissão física da senha depende de um serviço de impressão rodando
+**localmente na mesma máquina do totem**, escutando em `http://localhost:3333`
+(ver `src/services/ticketService.ts`, função `imprimirLocal`). Esse serviço
+não faz parte deste repositório — precisa estar instalado e em execução na
+Raspberry Pi para que a impressão funcione.
+
+Se o serviço de impressão estiver fora do ar ou a impressora falhar, o
+totem não trava: a senha já foi criada no backend, e o código é exibido na
+própria tela por um tempo para o paciente anotar.
+
+## Rodando localmente
+
+```bash
+yarn install
+yarn dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Build de produção
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default tseslint.config({
-  plugins: {
-    // Add the react-x and react-dom plugins
-    'react-x': reactX,
-    'react-dom': reactDom,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended typescript rules
-    ...reactX.configs['recommended-typescript'].rules,
-    ...reactDom.configs.recommended.rules,
-  },
-})
+```bash
+yarn build
 ```
+
+Gera os arquivos estáticos em `dist/`, que devem ser servidos pelo
+navegador em modo kiosk na Raspberry Pi.

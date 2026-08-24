@@ -86,3 +86,62 @@ export const Logo = styled.img`
   object-fit: scale-down;
   margin-bottom: 20px;
 `;
+
+export const BannerStack = styled.div`
+  position: fixed;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  max-width: 90%;
+`;
+
+export const EmptyState = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.8rem;
+  margin-top: 4vh;
+  padding: 2rem;
+  text-align: center;
+  color: ${colors.description};
+  font-size: 1.1rem;
+`;
+
+export const PrintFallbackOverlay = styled.div`
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.6);
+`;
+
+export const PrintFallbackCard = styled.div`
+  background: ${colors.white};
+  border-radius: 16px;
+  padding: 2.5rem 3rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.8rem;
+  text-align: center;
+  max-width: 90%;
+
+  h2 {
+    color: ${colors.red};
+  }
+`;
+
+export const PrintFallbackCode = styled.strong`
+  font-size: 3.5rem;
+  letter-spacing: 2px;
+  color: ${colors.title};
+  margin: 0.4rem 0;
+`;
