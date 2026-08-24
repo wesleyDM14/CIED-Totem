@@ -29,6 +29,11 @@ const socket = io(import.meta.env.VITE_BASE_URL);
 
 type TicketType = "NORMAL" | "PREFERENCIAL" | "IDOSO_80_MAIS";
 
+// Procedimento do dia já com o nome do(s) profissional(is) resolvido — o
+// backend manda a lista de profissionais vinculados a cada item da agenda
+// separadamente, nomeProfissional não vem pronto.
+type ProcedimentoComProfissional = Procedimento & { nomeProfissional: string };
+
 // Retry com backoff simples para a busca da agenda: começa em 15s e cresce
 // 5s a cada tentativa até um teto de 30s, enquanto o estado de erro persistir.
 const AGENDA_RETRY_BASE_MS = 15_000;
@@ -55,7 +60,7 @@ type PrintFallbackInfo = {
 const Totem: React.FC = () => {
     const [loading, setLoading] = useState<boolean>(true);
     const [agendaDiaria, setAgendaDiaria] = useState<Schedule>();
-    const [selectedProcedimento, setSelectedProcedimento] = useState<Procedimento | null>(null);
+    const [selectedProcedimento, setSelectedProcedimento] = useState<ProcedimentoComProfissional | null>(null);
 
     const [modalIsOpen, setModalIsOpen] = useState(false);
     const [creatingTicket, setCreatingTicket] = useState<boolean>(false);
@@ -192,9 +197,18 @@ const Totem: React.FC = () => {
         return () => clearTimeout(timeout);
     }, [printFallback]);
 
-    const procedimentosDisponiveis = useMemo(() => {
+    // O backend manda, pra cada item da agenda, o procedimento e a lista de
+    // profissionais vinculados separadamente — nomeProfissional precisa ser
+    // montado aqui.
+    const procedimentosDisponiveis = useMemo<ProcedimentoComProfissional[]>(() => {
         if (agendaDiaria && agendaDiaria.procedimentos) {
-            return agendaDiaria.procedimentos.map((procedimento) => procedimento.procedimento);
+            return agendaDiaria.procedimentos.map((item) => ({
+                ...item.procedimento,
+                dailyScheduleId: agendaDiaria.id,
+                nomeProfissional: item.profissionais && item.profissionais.length > 0
+                    ? item.profissionais.map((p) => p.name).join(', ')
+                    : 'A definir',
+            }));
         }
         return [];
     }, [agendaDiaria]);
@@ -220,7 +234,7 @@ const Totem: React.FC = () => {
                 await imprimirLocal({
                     code: senhaGerada.code,
                     type: senhaGerada.type,
-                    procedimento: procedimento.description,
+                    procedimento: procedimento.description || procedimento.name || "Exame",
                     profissional: procedimento.nomeProfissional,
                     createdAt: senhaGerada.createdAt,
                 });
@@ -268,6 +282,10 @@ const Totem: React.FC = () => {
                             Não foi possível carregar os procedimentos disponíveis no momento.
                             Estamos tentando novamente automaticamente.
                         </EmptyState>
+                    ) : procedimentosDisponiveis.length === 0 ? (
+                        <EmptyState>
+                            Nenhum procedimento disponível na agenda de hoje.
+                        </EmptyState>
                     ) : (
                         <Grid>
                             {procedimentosDisponiveis.map((proc) => (
@@ -275,7 +293,7 @@ const Totem: React.FC = () => {
                                     setSelectedProcedimento(proc);
                                     openModal();
                                 }}>
-                                    <strong>{proc.description}</strong>
+                                    <strong>{proc.description || proc.name}</strong>
                                     <span>{proc.nomeProfissional}</span>
                                 </Card>
                             ))}
@@ -299,7 +317,7 @@ const Totem: React.FC = () => {
                     },
                 }}
             >
-                <h2>{selectedProcedimento?.description}</h2>
+                <h2>{selectedProcedimento?.description || selectedProcedimento?.name}</h2>
                 <p>{selectedProcedimento?.nomeProfissional}</p>
                 <ButtonRow>
                     <ModalButton onClick={() => confirmar("IDOSO_80_MAIS")} disabled={creatingTicket}>
@@ -312,7 +330,9 @@ const Totem: React.FC = () => {
                         <FaUser /> Normal
                     </ModalButton>
                 </ButtonRow>
-                <FecharButton onClick={closeModal}>Cancelar</FecharButton>
+                <FecharButton onClick={closeModal} disabled={creatingTicket}>
+                    {creatingTicket ? 'Imprimindo...' : 'Cancelar'}
+                </FecharButton>
             </Modal>
 
             {printFallback && (

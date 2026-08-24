@@ -1,6 +1,7 @@
 import axios, { AxiosError } from "axios";
 import type { Ticket } from "../contexts/interfaces";
 
+// Cria o ticket no Banco de Dados (API Nuvem)
 export const createTicket = async (tipo: 'NORMAL' | 'PREFERENCIAL' | 'IDOSO_80_MAIS', procedimentoId: string): Promise<Ticket> => {
     try {
         const response = await axios.post(`${import.meta.env.VITE_BASE_URL}/api/tickets/totem`, {
@@ -9,6 +10,7 @@ export const createTicket = async (tipo: 'NORMAL' | 'PREFERENCIAL' | 'IDOSO_80_M
         }, {
             headers: {
                 "Content-Type": "application/json",
+                // Autenticação via API Key
                 "x-api-key": import.meta.env.VITE_APP_SECRET_KEY,
             }
         });
@@ -21,12 +23,13 @@ export const createTicket = async (tipo: 'NORMAL' | 'PREFERENCIAL' | 'IDOSO_80_M
     }
 }
 
+// Envia para o Servidor de Impressão Local (Node.js rodando no Totem)
 export const imprimirLocal = async (dados: {
     code: string;
     type: string;
     procedimento: string;
     profissional: string;
-    createdAt: Date;
+    createdAt: string | Date;
 }) => {
     try {
         const response = await fetch("http://localhost:3333/print", {
