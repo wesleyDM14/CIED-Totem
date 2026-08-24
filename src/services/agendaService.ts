@@ -3,8 +3,12 @@ import axios from "axios";
 import type { Schedule } from "../contexts/interfaces";
 
 export const getAgendamentoDiario = async (date: Date, setAgendamentoDiario: (agendaDiaria: Schedule) => void) => {
-    // Formata a data para YYYY-MM-DD
-    const formattedDate = date.toISOString().split('T')[0];
+    // Ancora em MEIO-DIA UTC (não meia-noite): meia-noite UTC já é 21h do dia
+    // anterior em Brasília, e o backend normaliza a data recebida para "o
+    // dia de Brasília em que esse instante cai" — enviar meia-noite fazia
+    // essa conta voltar um dia inteiro durante o expediente todo. Mesmo
+    // padrão já usado no painel administrativo de Agenda por este motivo.
+    const formattedDate = date.toISOString().split('T')[0] + 'T12:00:00.000Z';
 
     try {
         const response = await axios.get(`${import.meta.env.VITE_BASE_URL}/api/agendamentos/totem`, {
